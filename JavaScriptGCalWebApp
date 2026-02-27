@@ -1,0 +1,29 @@
+const TOKEN = "CHANGE_ME_TO_SOMETHING_RANDOM";
+const CALENDAR_ID = "primary"; // or your shared family calendar ID
+
+function doGet(e) {
+	const token = e.parameter.token || "";
+	if (token !== TOKEN) {
+		return ContentService.createTextOutput("unauthorized")
+			.setMimeType(ContentService.MimeType.TEXT);
+	}
+
+	const now = new Date();
+	const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+	const cal = CalendarApp.getCalendarById(CALENDAR_ID);
+	const events = cal.getEvents(now, end);
+
+	const out = events.map((ev) => ({
+		title: ev.getTitle(),
+		start: ev.getStartTime().toISOString(),
+		end: ev.getEndTime().toISOString(),
+		allDay: ev.isAllDayEvent(),
+	}));
+
+	return ContentService
+		.createTextOutput(
+			JSON.stringify({ generated: new Date().toISOString(), events: out })
+		)
+		.setMimeType(ContentService.MimeType.JSON);
+}
